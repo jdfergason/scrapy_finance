@@ -14,9 +14,37 @@ class EodDataSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-#            'http://eoddata.com/stocklist/AMEX/A.htm',
+            'http://eoddata.com/stocklist/AMEX/A.htm',
             'http://eoddata.com/stocklist/AMS/A.htm',
-
+            'http://eoddata.com/stocklist/ASX/A.htm',
+            'http://eoddata.com/stocklist/BRU/A.htm',
+            'http://eoddata.com/stocklist/CBOT/A.htm',
+            'http://eoddata.com/stocklist/CFE/Q.htm',
+            'http://eoddata.com/stocklist/CME/A.htm',
+            'http://eoddata.com/stocklist/COMEX/A.htm',
+            'http://eoddata.com/stocklist/EUREX/A.htm',
+            'http://eoddata.com/stocklist/FOREX/A.htm',
+            'http://eoddata.com/stocklist/HKEX/A.htm',
+            'http://eoddata.com/stocklist/INDEX/A.htm',
+            'http://eoddata.com/stocklist/KCBT/A.htm',
+            'http://eoddata.com/stocklist/LIFFE/A.htm',
+            'http://eoddata.com/stocklist/LIS/A.htm',
+            'http://eoddata.com/stocklist/LSE/A.htm',
+            'http://eoddata.com/stocklist/MGEX/A.htm',
+            'http://eoddata.com/stocklist/MLSE/A.htm',
+            'http://eoddata.com/stocklist/MSE/A.htm',
+            'http://eoddata.com/stocklist/NASDAQ/A.htm',
+            'http://eoddata.com/stocklist/NYBOT/A.htm',
+            'http://eoddata.com/stocklist/NYMEX/A.htm',
+            'http://eoddata.com/stocklist/NYSE/A.htm',
+            'http://eoddata.com/stocklist/NZX/A.htm',
+            'http://eoddata.com/stocklist/OTCBB/A.htm',
+            'http://eoddata.com/stocklist/PAR/A.htm',
+            'http://eoddata.com/stocklist/SGX/A.htm',
+            'http://eoddata.com/stocklist/TSX/A.htm',
+            'http://eoddata.com/stocklist/TSXV/A.htm',
+            'http://eoddata.com/stocklist/USMF/A.htm',
+            'http://eoddata.com/stocklist/WCE/A.htm',
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
