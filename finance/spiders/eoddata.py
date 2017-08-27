@@ -14,37 +14,9 @@ class EodDataSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'http://eoddata.com/stocklist/AMEX/A.htm',
+#            'http://eoddata.com/stocklist/AMEX/A.htm',
             'http://eoddata.com/stocklist/AMS/A.htm',
-            'http://eoddata.com/stocklist/ASX/A.htm',
-            'http://eoddata.com/stocklist/BRU/A.htm',
-            'http://eoddata.com/stocklist/CBOT/A.htm',
-            'http://eoddata.com/stocklist/CFE/Q.htm',
-            'http://eoddata.com/stocklist/CME/A.htm',
-            'http://eoddata.com/stocklist/COMEX/A.htm',
-            'http://eoddata.com/stocklist/EUREX/A.htm',
-            'http://eoddata.com/stocklist/FOREX/A.htm',
-            'http://eoddata.com/stocklist/HKEX/A.htm',
-            'http://eoddata.com/stocklist/INDEX/A.htm',
-            'http://eoddata.com/stocklist/KCBT/A.htm',
-            'http://eoddata.com/stocklist/LIFFE/A.htm',
-            'http://eoddata.com/stocklist/LIS/A.htm',
-            'http://eoddata.com/stocklist/LSE/A.htm',
-            'http://eoddata.com/stocklist/MGEX/A.htm',
-            'http://eoddata.com/stocklist/MLSE/A.htm',
-            'http://eoddata.com/stocklist/MSE/A.htm',
-            'http://eoddata.com/stocklist/NASDAQ/A.htm',
-            'http://eoddata.com/stocklist/NYBOT/A.htm',
-            'http://eoddata.com/stocklist/NYMEX/A.htm',
-            'http://eoddata.com/stocklist/NYSE/A.htm',
-            'http://eoddata.com/stocklist/NZX/A.htm',
-            'http://eoddata.com/stocklist/OTCBB/A.htm',
-            'http://eoddata.com/stocklist/PAR/A.htm',
-            'http://eoddata.com/stocklist/SGX/A.htm',
-            'http://eoddata.com/stocklist/TSX/A.htm',
-            'http://eoddata.com/stocklist/TSXV/A.htm',
-            'http://eoddata.com/stocklist/USMF/A.htm',
-            'http://eoddata.com/stocklist/WCE/A.htm',
+
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -70,23 +42,30 @@ class EodDataSpider(scrapy.Spider):
         # Get individual values
         for row in rows[1:]:
             try:
-                raw = row.xpath('td/a/text()').extract()
-                raw.extend(row.xpath('td/text()').extract())
-                raw = dict(zip(header, raw))
+                cols = row.xpath('td')
+
+                symbol = cols[0].xpath('a/text()').extract_first()
+                name = cols[1].xpath('text()').extract_first()
+                high = cols[2].xpath('text()').extract_first()
+                low = cols[3].xpath('text()').extract_first()
+                close = cols[4].xpath('text()').extract_first()
+                volume = cols[5].xpath('text()').extract_first()
+
                 # format raw data
-                res = {'symbol': raw['Code'],
+                res = {'symbol': symbol,
                     'date': now,
                     'exchange': exchange,
-                    'high': float(sanitize(raw['High'])),
-                    'low': float(sanitize(raw['Low'])),
-                    'close': float(sanitize(raw['Close'])),
-                    'volume': int(sanitize(raw['Volume']))}
+                    'name': name,
+                    'high': float(sanitize(high)),
+                    'low': float(sanitize(low)),
+                    'close': float(sanitize(close)),
+                    'volume': int(sanitize(volume))}
+                yield res
             except Exception as e:
                 logger.warning("Error parsing row: " + str(e) + " - " + row.extract())
-
-            yield res
-
+        """
         # get links to other pages
         pages = response.xpath("//table[contains(@class, 'lett')]/tr/td[contains(@class, 'ld')]/a/@href").extract()
         for page in pages:
             yield scrapy.Request(response.urljoin(page), callback=self.parse)
+        """
