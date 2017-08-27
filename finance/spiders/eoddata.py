@@ -91,9 +91,8 @@ class EodDataSpider(scrapy.Spider):
                 yield res
             except Exception as e:
                 logger.warning("Error parsing row: " + str(e) + " - " + row.extract())
-        """
+
         # get links to other pages
         pages = response.xpath("//table[contains(@class, 'lett')]/tr/td[contains(@class, 'ld')]/a/@href").extract()
         for page in pages:
             yield scrapy.Request(response.urljoin(page), callback=self.parse)
-        """
