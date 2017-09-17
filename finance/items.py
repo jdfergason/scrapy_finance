@@ -7,8 +7,14 @@
 
 import scrapy
 
-
-class FinanceItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class EODQuote(scrapy.Item):
+    ticker = scrapy.Field()
+    name = scrapy.Field()
+    date = scrapy.Field(serializer=str)
+    exchange = scrapy.Field()
+    open = scrapy.Field()
+    close = scrapy.Field()
+    high = scrapy.Field()
+    low = scrapy.Field()
+    volume = scrapy.Field()
+    source = scrapy.Field()

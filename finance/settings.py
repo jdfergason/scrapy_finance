@@ -14,6 +14,7 @@ BOT_NAME = 'finance'
 SPIDER_MODULES = ['finance.spiders']
 NEWSPIDER_MODULE = 'finance.spiders'
 
+CREATE_NEW_SECURITIES = True
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'finance (+http://www.yourdomain.com)'
@@ -64,9 +65,10 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'finance.pipelines.FinancePipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'finance.pipelines.DatePipeline': 200,
+    'finance.pipelines.EODPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

@@ -3,6 +3,11 @@ import re
 import scrapy
 import logging
 
+import requests
+from scrapy.http import HtmlResponse
+from finance.items import EODQuote
+
+
 logger = logging.getLogger(__name__)
 
 def sanitize(s):
@@ -15,8 +20,8 @@ class EodDataSpider(scrapy.Spider):
     def start_requests(self):
         urls = [
             'http://eoddata.com/stocklist/AMEX/A.htm',
-            'http://eoddata.com/stocklist/AMS/A.htm',
             'http://eoddata.com/stocklist/ASX/A.htm',
+            'http://eoddata.com/stocklist/AMS/A.htm',
             'http://eoddata.com/stocklist/BRU/A.htm',
             'http://eoddata.com/stocklist/CBOT/A.htm',
             'http://eoddata.com/stocklist/CFE/Q.htm',
@@ -46,9 +51,19 @@ class EodDataSpider(scrapy.Spider):
             'http://eoddata.com/stocklist/USMF/A.htm',
             'http://eoddata.com/stocklist/WCE/A.htm',
         ]
+
+        # Load pages
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
+    def parse_date(self, response):
+        if not 'data_dates' in dir(self):
+            self.data_dates = {}
+
+        exchange = response.url.split('/')[-2]
+        dt = response.xpath("//table[contains(@class, 'rc_t')]/tr/td[@nowrap][@style]/text()").extract_first()
+        self.data_dates[exchange] = dt
+        
     def parse(self, response):
         """
         Parse data
@@ -61,9 +76,6 @@ class EodDataSpider(scrapy.Spider):
         table = response.xpath("//table[contains(@class, 'quotes')]")[0]
         rows = table.xpath('tr')
 
-        now = datetime.now()
-        now = str(now.date())
-
         # Extract the header
         header = rows[0].xpath('th/text()').extract()
 
@@ -72,7 +84,14 @@ class EodDataSpider(scrapy.Spider):
             try:
                 cols = row.xpath('td')
 
-                symbol = cols[0].xpath('a/text()').extract_first()
+                if not 'data_dates' in dir(self) \
+                   or not exchange in self.data_dates:
+                    url = response.urljoin(cols[0].xpath('a/@href').extract_first())
+                    resp = requests.get(url)
+                    self.parse_date(HtmlResponse(url, status=resp.status_code,
+                                                 headers=resp.headers, body=resp.content))
+
+                ticker = cols[0].xpath('a/text()').extract_first()
                 name = cols[1].xpath('text()').extract_first()
                 high = cols[2].xpath('text()').extract_first()
                 low = cols[3].xpath('text()').extract_first()
@@ -80,14 +99,17 @@ class EodDataSpider(scrapy.Spider):
                 volume = cols[5].xpath('text()').extract_first()
 
                 # format raw data
-                res = {'symbol': symbol,
-                    'date': now,
-                    'exchange': exchange,
-                    'name': name,
-                    'high': float(sanitize(high)),
-                    'low': float(sanitize(low)),
-                    'close': float(sanitize(close)),
-                    'volume': int(sanitize(volume))}
+                res = {'ticker': ticker,
+                       'date': self.data_dates[exchange],
+                       'exchange': exchange,
+                       'name': name,
+                       'high': float(sanitize(high)),
+                       'low': float(sanitize(low)),
+                       'close': float(sanitize(close)),
+                       'volume': int(sanitize(volume)),
+                       'source': 'eoddata.com'
+                }
+                res = EODQuote(res)
                 yield res
             except Exception as e:
                 logger.warning("Error parsing row: " + str(e) + " - " + row.extract())
